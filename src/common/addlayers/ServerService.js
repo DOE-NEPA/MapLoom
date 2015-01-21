@@ -163,11 +163,13 @@ var SERVER_SERVICE_USE_PROXY = true;
                 server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
                 server.config.alwaysAnonymous = false;
 
-                var subURL = server.url.replace('/wms', '/rest/settings.json');
-                subURL = subURL.replace('http://', 'http://null:null@');
+                // remove the 'wms endpoint'
+                var serverBaseUrl = removeUrlLastRoute(server.url);
+                var serverAuthenticationUrl = serverBaseUrl + '/rest/settings.json';
+                serverAuthenticationUrl = serverAuthenticationUrl.replace('http://', 'http://null:null@');
                 ignoreNextScriptError = true;
                 $.ajax({
-                  url: subURL,
+                  url: serverAuthenticationUrl,
                   type: 'GET',
                   dataType: 'jsonp',
                   jsonp: 'callback',
@@ -261,11 +263,13 @@ var SERVER_SERVICE_USE_PROXY = true;
                   server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
                   server.config.alwaysAnonymous = false;
 
-                  var subURL = server.url.replace('/wms', '/rest/settings.json');
-                  subURL = subURL.replace('http://', 'http://null:null@');
+                  // remove the 'wms endpoint'
+                  var serverBaseUrl = removeUrlLastRoute(server.url);
+                  var serverAuthenticationUrl = serverBaseUrl + '/rest/settings.json';
+                  serverAuthenticationUrl = serverAuthenticationUrl.replace('http://', 'http://null:null@');
                   ignoreNextScriptError = true;
                   $.ajax({
-                    url: subURL,
+                    url: serverAuthenticationUrl,
                     type: 'GET',
                     dataType: 'jsonp',
                     jsonp: 'callback',
@@ -358,6 +362,16 @@ var SERVER_SERVICE_USE_PROXY = true;
       for (var index = 0; index < layersConfig.length; index += 1) {
         if (layersConfig[index].Name === layerName) {
           layerConfig = layersConfig[index];
+
+          if (goog.isDefAndNotNull(layerConfig.CRS)) {
+            for (var code in layerConfig.CRS) {
+              if (layerConfig.CRS[code] !== 'CRS:84') {
+                layerConfig.CRS = layerConfig.CRS[code];
+                break;
+              }
+            }
+          }
+          console.log('getting layer config, crs', layerConfig.CRS);
           break;
         }
       }
